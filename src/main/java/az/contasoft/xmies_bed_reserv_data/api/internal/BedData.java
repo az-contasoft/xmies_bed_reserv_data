@@ -4,8 +4,12 @@ import az.contasoft.xmies_bed_reserv.db.entities.BedReserv;
 import az.contasoft.xmies_properties.db.entity.Properties;
 import az.contasoft.xmies_protokol.protokol.db.entity.Protokol;
 
-public class BedData {
-     private Protokol protokol;
+import java.io.Serializable;
+
+public class BedData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    private Protokol protokol;
      private Properties properties;
      private BedReserv bedReserv;
 

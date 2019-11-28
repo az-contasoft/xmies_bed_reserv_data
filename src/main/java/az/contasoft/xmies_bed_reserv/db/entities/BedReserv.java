@@ -1,8 +1,12 @@
 package az.contasoft.xmies_bed_reserv.db.entities;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class BedReserv {
+public class BedReserv implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
 //Susan cox da shey eleme
 
     private  long idBadReserv;
