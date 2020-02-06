@@ -2,19 +2,23 @@ package az.contasoft.xmies_bed_reserv_data.util;
 
 import az.contasoft.xmies_bed_reserv.db.entities.BedReserv;
 import az.contasoft.xmies_bed_reserv_data.api.internal.BedData;
+import az.contasoft.xmies_bed_reserv_data.proxy.BedReservProxy;
 import az.contasoft.xmies_bed_reserv_data.proxy.PropertiesProxy;
-import az.contasoft.xmies_bed_reserv_data.proxy.ProtokolProxy;
+import az.contasoft.xmies_bed_reserv_data.proxy.ProtokolDataProxy;
 import az.contasoft.xmies_properties.db.entity.Properties;
 import az.contasoft.xmies_protokol.protokol.db.entity.Protokol;
+import az.contasoft.xmies_protokol_data.api.searchServices.internal.ProtokolData;
 import com.hazelcast.core.IMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 //import com.hazelcast.client.HazelcastClient;
 //import com.hazelcast.client.config.ClientConfig;
@@ -40,19 +44,46 @@ public class HazelCastUtility {
     PropertiesProxy propertiesProxy;
 
     @Autowired
-    ProtokolProxy protokolProxy;
+    ProtokolDataProxy protokolDataProxy;
 
+    private  IMap<Long, BedReserv> mapOfBedReserv;
+    private final BedReservProxy bedReservProxy;
 
-    @PostConstruct
-    public void init() {
-        startCaching();
+    public HazelCastUtility(IMap<Long, BedReserv> mapOfBedReserv, BedReservProxy bedReservProxy) {
+        this.mapOfBedReserv = mapOfBedReserv;
+        this.bedReservProxy = bedReservProxy;
     }
 
+    public IMap<Long, BedData> getMapOfBedData() {
+        return mapOfBedData;
+    }
 
-    public Properties getPropertyFromHazelCast(long idProperty) {
+    private ProtokolData getProtokolData(long idProtokol) {
+        try {
+            ProtokolData protokolData;
+            ResponseEntity<ProtokolData> responseEntity = protokolDataProxy.getProtokolData(idProtokol);
+            if (responseEntity.getStatusCodeValue() == 200 && responseEntity.getBody() != null) {
+                protokolData = responseEntity.getBody();
+                logger.info("ProtokolData from proxy {}", protokolData);
+                return protokolData;
+            }
+            return null;
+        } catch (Exception e) {
+            logger.error("Error getting ListOfProtokolData " + e, e);
+            return null;
+        }
+    }
+
+    public Properties getProperty(long idProperty) {
         logger.info("{}", "****************** getting map for properties from hazelcast ***************");
         try {
             Properties properties = mapOfProperties.get(idProperty);
+            if (properties == null) {
+                ResponseEntity<Properties> response = propertiesProxy.getByIdProperties(idProperty);
+                if (response.getStatusCodeValue() == 200) {
+                    response.getBody();
+                }
+            }
             return properties;
         } catch (Exception e) {
             logger.error("Error {} : {}", "get property from hazelCast", e, e);
@@ -86,7 +117,7 @@ public class HazelCastUtility {
         try {
             List<BedData> list = new ArrayList<>();
             for (BedData data : mapOfBedData.values()) {
-                if(data.getProtokol().getIdProtokol()==idProtocol){
+                if(data.getProtokolData().getProtokol().getIdProtokol()==idProtocol){
                     list.add(data);
                 }
             }
@@ -98,6 +129,21 @@ public class HazelCastUtility {
         }
     }
 
+    private IMap<Long, BedReserv> getMapOfBedReserv() {
+        try {
+            if (mapOfBedReserv == null || mapOfBedReserv.isEmpty()) {
+                logger.info(" mapOfBedReserv empty in hazel");
+                ResponseEntity<IMap<Long, BedReserv>> responseEntity = bedReservProxy.getAlAsMap();
+                if (responseEntity.getStatusCodeValue() == 200 && responseEntity.getBody() != null) {
+                    return responseEntity.getBody();
+                }
+            }
+            return mapOfBedReserv;
+        } catch (Exception e) {
+            logger.error("Error getting mapOfBedReserv " + e, e);
+            return null;
+        }
+    }
     public BedData getBedDataFromHazelCast(long idProtokol) {
         logger.info("{}", "Trying to get BedData from hazel cast");
         if (mapOfBedData.isEmpty()) {
@@ -107,8 +153,42 @@ public class HazelCastUtility {
     }
 
 
-    public void startCaching() {
+    private void collectBedReservData(){
+        try {
+            logger.info("trying to get BedReservData from hazelcast");
+            Map<Long, BedReserv> bedReservMap = getMapOfBedReserv();
+            assert bedReservMap != null;
+            logger.info("bedReservMap" + bedReservMap.size());
+            for (Long idBedReserv : bedReservMap.keySet()) {
 
+                BedData bedData = new BedData();
+
+                BedReserv bedReserv = bedReservMap.get(idBedReserv);
+                bedData.setBedReserv(bedReserv);
+                logger.info("BedReserv-nu aldig : {}", bedReserv);
+
+                Properties properties = getProperty(bedReserv.getIdProBed());
+                bedData.setProperties(properties);
+                logger.info("Properties-i aldig : {}", properties);
+
+                ProtokolData protokolData = getProtokolData(bedReserv.getIdProtokol());
+                bedData.setProtokolData(protokolData);
+                logger.info("ProtokolData-ni aldig : {}", protokolData);
+
+                assert protokolData != null;
+                mapOfBedData.put(protokolData.getProtokol().getIdProtokol(), bedData);
+
+
+            }
+        }catch (Exception e){
+            logger.error("Error bedData : {}, : {}",e,e);
+        }
+    }
+
+    public void startCaching() {
+        mapOfBedData.clear();
+        mapOfBedData.destroy();
+        collectBedReservData();
     }
 
 

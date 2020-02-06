@@ -1,32 +1,26 @@
 package az.contasoft.xmies_protokol.protokol.db.entity;
 
-import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class Protokol implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
 
     private long idProtokol;
     private long idPatient;
     private long idDepartment;
     private long idPersonal;
     private long idComingTypeProperty;
-    @Nullable
     private long idXidmetlerOrPaket;
-    @Nullable
     private long idXidmetlerOrPaketByPropertyType;
-    @Nullable
     private long idSigortaMuqavile;
     private String assuranceNo;
     private long idForwarder;
-
-    private Date createdTime;
-    private Date closedDate;
-    private long idNote;
+    private LocalDateTime createdTime;
+    private LocalDateTime closedDate;
+    private String note;
     private long idPersonalDeletedBy;
     private int isActive;
     private int isDelete;
@@ -34,7 +28,7 @@ public class Protokol implements Serializable {
     public Protokol() {
     }
 
-    public Protokol(long idPatient, long idDepartment, long idPersonal, long idComingTypeProperty, long idXidmetlerOrPaket, long idXidmetlerOrPaketByPropertyType, long idSigortaMuqavile, String assuranceNo, long idForwarder, Date createdTime, Date closedDate, long idNote, long idPersonalDeletedBy, int isActive, int isDelete) {
+    public Protokol(long idPatient, long idDepartment, long idPersonal, long idComingTypeProperty, long idXidmetlerOrPaket, long idXidmetlerOrPaketByPropertyType, long idSigortaMuqavile, String assuranceNo, long idForwarder, LocalDateTime createdTime, LocalDateTime closedDate, String note, long idPersonalDeletedBy, int isActive, int isDelete) {
         this.idPatient = idPatient;
         this.idDepartment = idDepartment;
         this.idPersonal = idPersonal;
@@ -46,7 +40,7 @@ public class Protokol implements Serializable {
         this.idForwarder = idForwarder;
         this.createdTime = createdTime;
         this.closedDate = closedDate;
-        this.idNote = idNote;
+        this.note = note;
         this.idPersonalDeletedBy = idPersonalDeletedBy;
         this.isActive = isActive;
         this.isDelete = isDelete;
@@ -132,28 +126,28 @@ public class Protokol implements Serializable {
         this.idForwarder = idForwarder;
     }
 
-    public Date getCreatedTime() {
+    public LocalDateTime getCreatedTime() {
         return createdTime;
     }
 
-    public void setCreatedTime(Date createdTime) {
+    public void setCreatedTime(LocalDateTime createdTime) {
         this.createdTime = createdTime;
     }
 
-    public Date getClosedDate() {
+    public LocalDateTime getClosedDate() {
         return closedDate;
     }
 
-    public void setClosedDate(Date closedDate) {
+    public void setClosedDate(LocalDateTime closedDate) {
         this.closedDate = closedDate;
     }
 
-    public long getIdNote() {
-        return idNote;
+    public String getNote() {
+        return note;
     }
 
-    public void setIdNote(long idNote) {
-        this.idNote = idNote;
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public long getIdPersonalDeletedBy() {
@@ -195,9 +189,10 @@ public class Protokol implements Serializable {
                 ", idForwarder=" + idForwarder +
                 ", createdTime=" + createdTime +
                 ", closedDate=" + closedDate +
-                ", idNote=" + idNote +
+                ", note='" + note + '\'' +
                 ", idPersonalDeletedBy=" + idPersonalDeletedBy +
                 ", isActive=" + isActive +
                 ", isDelete=" + isDelete +
                 '}';
-    }}
+    }
+}

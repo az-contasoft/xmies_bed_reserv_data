@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/searchServices")
@@ -28,5 +29,16 @@ public class Controller {
     public ResponseEntity<List<BedData>> getBedData(@PathVariable("idProtocol") long idProtocol) {
         logger.info("{}", "controller>>> getting list of personal from BedData...");
         return service.getBedDataList(idProtocol);
+    }
+
+    @GetMapping("/AllAsMap")
+    public ResponseEntity<Map<Long, BedData>>  getAllAsMap(){
+        logger.info(" getting AllAsMap ");
+        return service.getAllAsMap();
+    }
+
+    @GetMapping("/cache")
+    public ResponseEntity<String> startCaching() {
+        return service.startCaching();
     }
 }
